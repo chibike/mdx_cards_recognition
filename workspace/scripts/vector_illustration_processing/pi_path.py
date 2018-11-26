@@ -471,7 +471,7 @@ class Path(object):
 		return ( np.array(self.ys, dtype=np.int64), np.array(self.xs, dtype=np.int64) )
 	
 	def get_as_contour(self):
-		xys = np.array(zip(self.xs, self.ys), dtype=np.int32)
+		xys = np.array(list(zip(self.xs, self.ys)), dtype=np.int32)
 		xys.reshape((len(self.ys), 1, 2))
 
 		return xys
