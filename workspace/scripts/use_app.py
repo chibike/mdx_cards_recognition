@@ -196,6 +196,9 @@ class CardDetectionApp(QWidget):
             self.enable_camera_preview()
     
     def btn_predict_card_callback(self):
+        if self.image is None: return
+        if len(self.image.shape) != 3: return
+            
         frame = self.image.copy()
         processed_frame = frame.copy()
 
