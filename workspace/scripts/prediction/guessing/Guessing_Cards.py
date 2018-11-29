@@ -6,7 +6,7 @@ import random
 class SuitDetector(object):
     def __init__(self):
         # define class labels
-        self.class_labels = ["diamonds", "hearts", "spades", "three_sisters"]
+        self.class_labels = ["diamonds", "hearts", "spades", "clubs"]
 
     def predict(self, image):
         return random.choice(self.class_labels), (1.0 / len(self.class_labels))

@@ -16,8 +16,7 @@ Mail:
     Name: Chibuike Okpaluba
     Email: co607@live.mdx.ac.uk
 
-    Subject: Vector Illustration Processing in Python FDD
-
+    Subject: Vector Illustration Processing in Python (FDD Subset)
 
 
 ## ## ##

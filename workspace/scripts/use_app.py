@@ -1,4 +1,32 @@
 #!/usr/bin/env python
+r'''
+----------------------------- Use App ----------------------------------
+Implementation of The Cards Classification Code using a GUI
+
+Please not that this script uses "Python 3" and the following additional libaries
+
+    matplotlib, imutils, numpy, scipy, sklearn, keras, Pillow, and tensorflow
+
+    Most of the other scripts have been written by "Chibuike Okpaluba", please read LICENSE.txt for more information.
+
+
+DESCRIPTION
+
+    This scripts launches a card dectection app which REQUIRES access to a CAMERA to work
+
+
+HOW TO USE
+
+    run: python use_app.py
+
+
+FOR MORE INFORMATION
+
+    Contact: co607@live.mdx.ac.uk
+    Subject: MDX Cards Advanded Robotics Projects 2018
+
+'''
+
 from __future__ import division
 
 import os,sys,inspect
@@ -10,8 +38,6 @@ import pi_point
 import pi_line
 import pi_path
 
-import cv2
-import json
 from imutils import paths
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -19,9 +45,10 @@ from PyQt5.QtWidgets import *
 
 from matplotlib import pyplot as plt
 import numpy as np
+import random
 import math
 import cv2
-import random
+import json
 import time
 
 from prediction.guessing   import Guessing_Cards
@@ -44,6 +71,8 @@ class CardDetectionApp(QWidget):
         self._cam_timer.setInterval(1000 / 10)
         
         self.init_UI()
+        self.btn_change_camera_id_callback()     # trigger camera selection dialog
+        self.cb_classifier.setCurrentIndex(2)    # set the default prediction model to a LeNet based cnn
     
     def init_UI(self):
         self.setWindowTitle("MDX Cards Detector")
@@ -75,7 +104,7 @@ class CardDetectionApp(QWidget):
         self.ed_card_number = QLineEdit()
         self.ed_card_number.setReadOnly(True)
 
-        section_heading = QLabel("Select Classifier")
+        section_heading = QLabel("Select Network Complexity")
         section_heading.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         section_heading.setStyleSheet("QLabel {color: red; font: bold 14px;}")
         layout.addRow(section_heading)
@@ -90,7 +119,7 @@ class CardDetectionApp(QWidget):
         layout.addRow(QLabel("#"), self.ed_card_number)
 
         self.btn_predict_card = QPushButton("Predict")
-        self.btn_predict_card.setCheckable(False)
+        self.btn_predict_card.setCheckable(True)
         self.btn_predict_card.clicked.connect(self.btn_predict_card_callback)
 
         self.btn_change_camera_id = QPushButton("Change Camera")
@@ -101,9 +130,9 @@ class CardDetectionApp(QWidget):
         control_buttons.addWidget(self.btn_predict_card)
         control_buttons.addWidget(self.btn_change_camera_id)
 
-        section_heading = QLabel("Card #")
+        section_heading = QLabel("Controls")
         section_heading.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        section_heading.setStyleSheet("QLabel {color: red; font: bold 14px;}")
+        section_heading.setStyleSheet("QLabel {color: green; font: bold 14px;}")
         
         layout.addRow(section_heading)
         layout.addRow(self.btn_predict_card, self.btn_change_camera_id)
@@ -117,7 +146,12 @@ class CardDetectionApp(QWidget):
         self.disable_camera_preview()
         event.accept()
     
+    def keyPressEvent(self, event):
+        self.btn_predict_card_callback()
+    
     def fim_render(self, image):
+        # This method handles rendering the processed image
+
         if image is None: return
         if len(image.shape) != 3: return
         
@@ -133,10 +167,13 @@ class CardDetectionApp(QWidget):
         self.fim_graphics_scene.update()
     
     def im_render(self):
+        # This method handles rendering the camera image
+
         if self.image is None: return
         if len(self.image.shape) != 3: return
         
         img = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+        # img = cv2.flip( img, 1 )                                         # Uncomment to flip image (mirror like view)
         im_height, im_width, byte_val = img.shape
 
         m_qimage = QImage(img.data, im_width, im_height, byte_val * im_width, QImage.Format_RGB888)
@@ -146,6 +183,8 @@ class CardDetectionApp(QWidget):
         self.im_graphics_scene.addPixmap(m_pix_map)
         self.im_graphics_view.fitInView(QRectF(0,0,im_width, im_height), Qt.KeepAspectRatio)
         self.im_graphics_scene.update()
+
+        self.btn_predict_card_callback()
     
     def show_message(self, title="Warning!", msg="Could not read image?"):
         QMessageBox.question(self, title, msg, QMessageBox.Ok, QMessageBox.Ok)
@@ -196,6 +235,7 @@ class CardDetectionApp(QWidget):
             self.enable_camera_preview()
     
     def btn_predict_card_callback(self):
+        if not self.btn_predict_card.isChecked(): return
         if self.image is None: return
         if len(self.image.shape) != 3: return
             
@@ -231,8 +271,12 @@ class CardDetectionApp(QWidget):
             self.current_classifier = MiniVGGNet_Cards.SuitDetector()
     
     def process_contours(self, contours, in_img, out_img):
+        # This method FILTERS and LABELS the given contours ----- THIS is the method that handles the card prediction
         
         def _get_coutour_image(img, path, contour):
+            #  This function returns the subset (with padding) of the given image that contains the contour
+            #    Two subsets are returned, (1. subset in original image), (2. subset in original image as a mask)
+
             width = path.rect_info.width
             height = path.rect_info.height
 
@@ -251,6 +295,31 @@ class CardDetectionApp(QWidget):
             n_img  = img[top_y:bottom_y, top_x:bottom_x]
             
             return n_img, n_mask
+        
+        def _constrain(x, mnx, mxx):
+            return min(mxx, max(x, mnx))
+        
+        def determine_prediction(labels, probabilities):
+            #  Given a random assortment of labels and probabilties, this function returns a list contain each label and its mean probability
+            #  Don't try to comprehend how this works --> you can't :) (it's magic)
+
+            f = lambda a, b : [list(filter(lambda x: x[0] == i, sorted(list(zip(a, b)), key=lambda x: x[0]))) for i in list(set(a))]
+
+            def _get_prediction(foo, n):
+                label, preds = list(zip(*foo))
+                label = label[0]
+                preds = list(sorted(preds)[-n:])
+                return label, sum(preds) / float(len(preds))
+
+            data = f(labels, probabilities)
+            n_data = []
+
+            for d in data:
+                r = _get_prediction(d, 3)
+                n_data.append((r[0], r[1]))
+            
+            # rearrange the list to ensure that label with the highest probability is first
+            return list(sorted(n_data, key=lambda x : x[1], reverse=True))
 
         contours_list = [contour.reshape((contour.shape[0], 2)).tolist() for contour in contours]
         paths_list    = [pi_path.Path(raw_point_data=[pi_point.Point(x=point[0], y=point[1]) for point in contour_points], is_closed=True) for contour_points in contours_list]
@@ -258,36 +327,59 @@ class CardDetectionApp(QWidget):
         filtered_paths = []
         filtered_cnts = []
         labels = []
-        preds = []
+        probs = []
 
+
+        # do not consider contours that have areas less than {@ min_allowed_area}
         min_allowed_area = 100
         paths_attributes  = [(path, path.rect_info.area, path.rect_info.perimeter) for path in paths_list if path.rect_info.area > min_allowed_area]
         paths_list, area_list, perimeter_list = zip(*paths_attributes)
 
         for path in paths_list:
             rect_info = path.rect_info
+
+            # do not add contours with invalid an axes ratio, or area
+            if path.ratio < 0.6: continue
+            if rect_info.area < 800: continue
+            if rect_info.area > 7000: continue
+            
+            # convert path to contour
             cnt = path.get_as_contour()
 
+            # extract a padded section of image with the contour
             n_img, n_mask = _get_coutour_image(in_img, path, cnt)
-            if self.current_classifier is not None:
-                label, pred = self.current_classifier.predict(n_img)
-                if pred < 0.9: continue
 
-                print ("[INFO] prediction: {}".format((label, pred)))
+
+            # THIS IS WHERE THE PREDICTION IS DONE
+            if self.current_classifier is not None:
+                label, prob = self.current_classifier.predict(n_img)
+                
+                if prob < 0.9: continue # Do not accept contours with probabilities < than 0.9
+
+                labels.append(label)
+                probs.append(prob)
 
             filtered_cnts.append(cnt)
             filtered_paths.append(path)
+        
+        preds = determine_prediction(labels, probs)
+        number_labels = ["Ace", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"]
 
+        if len(preds) > 0:
+            label, prob = preds[0] # select the prediction with the highest probability
+            
+            self.ed_card_suit.setText(label.capitalize())
+
+            # set card number to a selection from {@ number_labels}, based on the number of filitered paths
+            self.ed_card_number.setText(number_labels[_constrain(len(filtered_paths)-1, 0, len(number_labels)-1)])
+        else:
+            self.ed_card_suit.setText("None")
+            self.ed_card_number.setText("None")
         
         cv2.drawContours(out_img, filtered_cnts, -1, (0,0,255), 1)
         return out_img, filtered_paths, filtered_cnts
-    
-    def label_contours(self, contours):
-        pass
-
 
 if __name__ == '__main__':
-
     app = QApplication(sys.argv)
     ex = CardDetectionApp()
     sys.exit(app.exec_())

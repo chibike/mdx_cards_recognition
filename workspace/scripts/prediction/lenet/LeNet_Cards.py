@@ -16,7 +16,7 @@ import cv2
 class SuitDetector(object):
     def __init__(self):
         # define class labels
-        self.class_labels = ["diamonds", "hearts", "spades", "three_sisters"]
+        self.class_labels = ["diamonds", "hearts", "spades", "clubs"]
 
         # define preprocessors
         self.pp = [SimplePreprocessor(32, 32), ImageToArrayPreprocessor()]
