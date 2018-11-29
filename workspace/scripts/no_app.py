@@ -19,6 +19,8 @@ HOW TO USE
 
     run: python no_app.py --model LeNet --dataset ../datasets/test_no_app/
 
+    expectation: To windows contained the original and processed image should be launched
+
 
 FOR MORE INFORMATION
 
@@ -57,25 +59,33 @@ models = {
 
 print("[INFO] sampling images")
 image_paths = np.array(list(paths.list_images(args["dataset"])))
-idxs = np.random.randint(0, len(image_paths), size=(10,)) # randomize the input data
+idxs = np.random.randint(0, len(image_paths), size=(len(image_paths),)) # randomize the input data
 image_paths = image_paths[idxs]
 
 print("[INFO] loading selected model")
 model_name = args["model"]
 
 if not model_name in models.keys():
-    raise ValueError("The --model parameter must be one of the following {}".format(str(models.keys())))
+    raise ValueError("The --model parameter must be one of the following [{}]".format(", ".join(list(models.keys()))))
 
 prediction_model = models[model_name].SuitDetector()
 
 print("[INFO] showing images")
 for image_path in image_paths:
-    img = cv.imread(img)
-    processed_img, results = support_functions.process_image(image_path, prediction_model)
+    img = cv2.imread(image_path)
+    (processed_img, results), gray_th = support_functions.process_image(image_path, prediction_model)
 
-    cv2.imshow("original", img)
-    cv2.imshow("processed", processed_img)
-    cv2.waitkey(0)
+    print () # print blank line
+    print ("[INFO] results for ({0} = SUIT: {1}, PROB: {3:.3f})".format(model_name, *results))
+    print ("[INFO] PRESS SPACE to load the next image, Q to exit.")
+
+    cv2.imshow("original vs processed", support_functions.combine_images(img, processed_img))
+    k = cv2.waitKey(0)
+
+    if k in [27, ord('q')]:
+        print ("[INFO] exiting...")
+        break
 
 cv2.destroyAllWindows()
+exit()
 

@@ -70,6 +70,13 @@ def process_contours(contours, in_img, out_img, prediction_model=None):
             
             return n_img, n_mask
 
+        in_img_w, in_img_h,_ = (0, 0, 0)
+
+        if len(in_img.shape) == 3:
+            in_img_w, in_img_h,_ = in_img.shape
+        else:
+            raise ValueError("The input image must be of type cv2::mat bgr")
+
         contours_list = [contour.reshape((contour.shape[0], 2)).tolist() for contour in contours]
         paths_list    = [pi_path.Path(raw_point_data=[pi_point.Point(x=point[0], y=point[1]) for point in contour_points], is_closed=True) for contour_points in contours_list]
 
@@ -78,7 +85,7 @@ def process_contours(contours, in_img, out_img, prediction_model=None):
         labels = []
         probs = []
 
-        min_allowed_area = 100
+        min_allowed_area = (in_img_w * in_img_h) * (500.0 / 66240.0)
         paths_attributes  = [(path, path.rect_info.area, path.rect_info.perimeter) for path in paths_list if path.rect_info.area > min_allowed_area]
         paths_list, area_list, perimeter_list = zip(*paths_attributes)
 
@@ -86,13 +93,12 @@ def process_contours(contours, in_img, out_img, prediction_model=None):
             rect_info = path.rect_info
 
             if path.ratio < 0.6: continue
-            if rect_info.area < 800: continue
-            if rect_info.area > 7000: continue
+            if rect_info.area > (in_img_w * in_img_h) * (7000.0 / 66240.0): continue
             
             cnt = path.get_as_contour()
 
             n_img, n_mask = _get_coutour_image(in_img, path, cnt)
-            if current_classifier is not None:
+            if prediction_model is not None:
                 label, prob = prediction_model.predict(n_img)
                 if prob < 0.9: continue
 
@@ -135,11 +141,12 @@ def process_contours(contours, in_img, out_img, prediction_model=None):
             label = label.capitalize()
             number = number_labels[_constrain(len(filtered_paths)-1, 0, len(number_labels)-1)]
         
-        cv2.drawContours(out_img, filtered_cnts, -1, (0,0,255), 1)
+        cv2.drawContours(out_img, filtered_cnts, -1, (0,255,0), 1)
         return out_img, [label, number, probability]
 
 def process_image(image_path, prediction_model=None):
     frame = cv2.imread(image_path)
+    processed_frame = frame.copy()
 
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     gray_frame = cv2.GaussianBlur(gray_frame, (5, 5), 0)
@@ -151,4 +158,20 @@ def process_image(image_path, prediction_model=None):
     gray_th = cv2.erode(gray_th, kernel, iterations=1)
 
     _, contours, _ = cv2.findContours(gray_th, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    return self.process_contours(contours, frame, processed_frame, prediction_model)
+    return process_contours(contours, frame, processed_frame, prediction_model), gray_th
+
+def combine_images(img1, img2, pad_width=10):
+    if img1.shape != img2.shape:
+        raise ValueError("The given images must have similar shapes")
+
+    im_h, im_w, _ = img1.shape
+
+    pad_width = int(pad_width)
+    n_im_w = int((im_w * 2) + pad_width)
+
+    n_img = np.zeros((im_h, n_im_w, 3), dtype=np.uint8)
+
+    n_img[:, :im_w, :] = img1
+    n_img[:, (im_w + pad_width):, :] = img2
+
+    return n_img

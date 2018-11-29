@@ -3,12 +3,13 @@
 import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
-sys.path.insert(0,"/home/mdxcards/Desktop/Project/mdx_cards_recognition/workspace/scripts/")
+sys.path.insert(0,"{}/../../".format(currentdir))
 
 from preprocessing.ImageToArrayPreprocessor import ImageToArrayPreprocessor
 from preprocessing.SimplePreprocessor import SimplePreprocessor
 from data_loading.SimpleDatasetLoader import SimpleDatasetLoader
 from keras.models import load_model
+from keras.utils import plot_model
 import numpy as np
 import cv2
 
@@ -22,7 +23,7 @@ class SuitDetector(object):
         self.pp = [SimplePreprocessor(32, 32), ImageToArrayPreprocessor()]
 
         # load model
-        self.model = load_model("{}/lenet_cards.hdf5".format(currentdir))
+        self.model = load_model("{}/model/lenet_cards.hdf5".format(currentdir))
 
     def predict(self, image):
         for p in self.pp:
@@ -40,11 +41,15 @@ class SuitDetector(object):
         probability = pred[0][pred.argmax(axis=1)[0]]
 
         return label, probability
+    
+    def plot_model(self, filename="lenet_cards.png"):
+        plot_model(self.model, to_file=filename, show_shapes=True)
 
 
 
 def test():
     s = SuitDetector()
+    s.plot_model("{}/model_plot/lenet_cards.png".format(currentdir))
 
 
 if __name__ == '__main__':

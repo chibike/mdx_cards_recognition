@@ -34,6 +34,8 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 sys.path.insert(0,currentdir)
 sys.path.insert(0,"{}/vector_illustration_processing".format(currentdir))
 
+SAVE_IMG_PATH = "{}/../datasets/test_no_app".format(currentdir)
+
 import pi_point
 import pi_line
 import pi_path
@@ -49,7 +51,7 @@ import random
 import math
 import cv2
 import json
-import time
+import time # used to calculate new image name
 
 from prediction.guessing   import Guessing_Cards
 from prediction.shallownet import ShallowNet_Cards
@@ -142,13 +144,38 @@ class CardDetectionApp(QWidget):
 
         self.show()
     
+    def quit_app(self):
+        super(CardDetectionApp, self).close()
+
     def closeEvent(self, event):
-        self.disable_camera_preview()
-        event.accept()
-    
+        reply = QMessageBox.question(self, "Quiting", "Do you want to exit?", QMessageBox.Yes, QMessageBox.No)
+
+        if reply == QMessageBox.Yes:
+            self.disable_camera_preview()
+            
+            event.accept()
+        else:
+            event.ignore()
+
     def keyPressEvent(self, event):
-        self.btn_predict_card_callback()
-    
+        key = event.key()
+
+        if key == Qt.Key_S:
+            if (self.image is None) or (len(self.image.shape) != 3):
+                self.show_message(msg="Could not save empty image")
+                return
+            
+            # create random name
+            im_name = "{}{}{}.png".format(str(time.time()).split(".")[0][-5:], str(time.time()).split(".")[1], "".join([random.choice("abcdefghijklmnopqrstuvwxyz") for i in range(5)]))
+            im_name = "{}/{}".format(SAVE_IMG_PATH, im_name)
+
+            cv2.imwrite(im_name, self.image)
+            self.show_message(title="Info", msg="Saved current image to {}".format(im_name))
+        elif key in [Qt.Key_Q, Qt.Key_Escape]:
+            self.quit_app()
+        else:
+            self.btn_predict_card_callback()
+
     def fim_render(self, image):
         # This method handles rendering the processed image
 
@@ -320,7 +347,7 @@ class CardDetectionApp(QWidget):
             
             # rearrange the list to ensure that label with the highest probability is first
             return list(sorted(n_data, key=lambda x : x[1], reverse=True))
-
+        
         contours_list = [contour.reshape((contour.shape[0], 2)).tolist() for contour in contours]
         paths_list    = [pi_path.Path(raw_point_data=[pi_point.Point(x=point[0], y=point[1]) for point in contour_points], is_closed=True) for contour_points in contours_list]
 

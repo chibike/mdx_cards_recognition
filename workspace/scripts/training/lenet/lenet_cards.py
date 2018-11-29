@@ -1,36 +1,38 @@
 #!/usr/bin/env python
 
-#python lenet_cards.py -d ../datasets_2/cards_dataset
+#python lenet_cards.py -d ../../../datasets/preprocessed_cards/cards_dataset
+
+import os,sys,inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0,"{}/../../".format(currentdir))
 
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from preprocessing.ImageToArrayPreprocessor import ImageToArrayPreprocessor
 from preprocessing.SimplePreprocessor import SimplePreprocessor
-from datasets.SimpleDatasetLoader import SimpleDatasetLoader
+from data_loading.SimpleDatasetLoader import SimpleDatasetLoader
 from nn.conv.lenet import LeNet
 from keras.optimizers import SGD
 from imutils import paths
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
-import os
 
 NAME      = "letnet_cards"
 DIR_NAME  = "{}_results".format(NAME)
 IM_NAME   = "{}/{}.png".format(DIR_NAME, NAME)
 DATA_NAME = "{}/{}.hdf5".format(DIR_NAME, NAME)
 
-try:
-    os.rmdir(DIR_NAME)
-except OSError:
-    pass
-
-os.mkdir(DIR_NAME)
-
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--dataset", required=True, help="path to input dataset")
+ap.add_argument("-o", "--output", required=False, default="", help="path to output folder")
 args = vars(ap.parse_args())
+
+print ("[INFO] verifying output directory...")
+if not os.path.exists(args["output"]):
+    raise ValueError("Invalid output path received")
 
 print("[INFO] loading images")
 image_paths = list(paths.list_images(args["dataset"]))
@@ -75,7 +77,25 @@ plt.ylabel("Loss/Accuracy")
 plt.legend()
 
 
+print ("[INFO] setting up storage location ....")
+
+DIR_NAME  = os.path.join(args["output"], DIR_NAME)
+
+try:
+    os.rmdir(DIR_NAME)
+    print ("[INFO] removed old directory")
+except OSError:
+    print ("[INFO] could not remove old directory")
+
+try:
+    os.mkdir(DIR_NAME)
+    print ("[INFO] created new directory")
+except OSError:
+    print ("[INFO] could not create new directory")
+
 print ("[INFO] saving network....")
 
 plt.savefig(IM_NAME)
 model.save(DATA_NAME)
+
+print ("[INFO] your network has been saved!")
