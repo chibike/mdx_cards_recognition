@@ -62,6 +62,7 @@ Furthermore, both applications provide other features such as
 The structure of this repo/project is described below.
 
 workspace: Contains the datasets (train, testing, and samples) used and the scripts
+
 workspace/scripts: Contains all the scripts used in the project
 
 Description of relevant scripts.
