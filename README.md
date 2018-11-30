@@ -108,7 +108,14 @@ python workspace/scripts/no_app.py --model LeNet --dataset workspace/datasets/te
 Get your hands dirty -> Train the models yourself
 
 ```
-workspace/scripts/training
+# To train the ShallowNet model        -- fastest to train
+python workspace/scripts/training/shallownet/shallownet_cards.py -d workspace/datasets/preprocessed_cards/cards_dataset
+
+# To train the LeNet model
+python workspace/scripts/training/lenet/lenet_cards.py -d workspace/datasets/preprocessed_cards/cards_dataset
+
+# To train the MiniVGGNet model        -- slowest to train
+python workspace/scripts/training/minivggnet/minivggnet_cards.py -d workspace/datasets/preprocessed_cards/cards_dataset
 ```
 
 # Installation (Software)

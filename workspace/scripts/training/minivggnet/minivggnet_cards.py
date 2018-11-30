@@ -30,7 +30,7 @@ DATA_NAME = "{}/{}.hdf5".format(DIR_NAME, NAME)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--dataset", required=True, help="path to input dataset")
-ap.add_argument("-o", "--output", required=False, default="", help="path to output folder")
+ap.add_argument("-o", "--output", required=False, default=".", help="path to output folder")
 args = vars(ap.parse_args())
 
 print ("[INFO] verifying output directory...")
