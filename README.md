@@ -24,6 +24,8 @@ Email: co607@live.mdx.ac.uk
 
 Subject: MDX Cards Advanced Robotics Projects 2018
 
+Repo: https://github.com/chibike/mdx_cards_recognition
+
 # Description
 This repo/project contains python scripts written to recognize four of the cards suits in a standard card deck. The programs can receive an input from a camera or folder and reliably identify the suits of the card placed in front of it (one at a time).
 
