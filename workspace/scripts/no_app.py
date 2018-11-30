@@ -46,8 +46,8 @@ import argparse
 
 print("[INFO] parsing your arguments")
 ap = argparse.ArgumentParser()
-ap.add_argument("-m", "--model", required=True, help="model name")
-ap.add_argument("-d", "--dataset", required=False, default="LeNet", help="path to input images")
+ap.add_argument("-m", "--model",   required=False, default="LeNet", help="model name")
+ap.add_argument("-d", "--dataset", required=True,  help="path to input images")
 args = vars(ap.parse_args())
 
 models = {

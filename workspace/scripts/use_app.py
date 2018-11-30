@@ -34,7 +34,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 sys.path.insert(0,currentdir)
 sys.path.insert(0,"{}/vector_illustration_processing".format(currentdir))
 
-SAVE_IMG_PATH = "{}/../datasets/test_no_app".format(currentdir)
+SAVE_IMG_PATH = "{}/../datasets/gui_images".format(currentdir)
 
 import pi_point
 import pi_line
@@ -166,7 +166,7 @@ class CardDetectionApp(QWidget):
                 return
             
             # create random name
-            im_name = "{}{}{}.png".format(str(time.time()).split(".")[0][-5:], str(time.time()).split(".")[1], "".join([random.choice("abcdefghijklmnopqrstuvwxyz") for i in range(5)]))
+            im_name = "{}{}{}.png".format(str(time.time()).split(".")[0][-7:], str(time.time()).split(".")[1], "".join([random.choice("abcdefghijklmnopqrstuvwxyz") for i in range(5)]))
             im_name = "{}/{}".format(SAVE_IMG_PATH, im_name)
 
             cv2.imwrite(im_name, self.image)
