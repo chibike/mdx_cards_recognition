@@ -76,7 +76,7 @@ for image_path in image_paths:
     (processed_img, results), gray_th = support_functions.process_image(image_path, prediction_model)
 
     print () # print blank line
-    print ("[INFO] results for ({0} = SUIT: {1}, PROB: {3:.3f})".format(model_name, *results))
+    print ("[INFO] results for {0} = (suit: {1}, prob: {3:.3f})".format(model_name, *results))
     print ("[INFO] PRESS SPACE to load the next image, Q to exit.")
 
     cv2.imshow("original vs processed", support_functions.combine_images(img, processed_img))
