@@ -123,6 +123,7 @@ python workspace/scripts/training/minivggnet/minivggnet_cards.py -d workspace/da
 
 # Installation (Software)
 ```
+sudo apt-get install python3-pip python-pip
 pip install --user numpy scipy matplotlib jupyter pandas sympy nose imutils pyqt5 Pillow scikit-learn scikit-image
 pip install --user opencv-python
 
