@@ -121,7 +121,7 @@ python workspace/scripts/training/lenet/lenet_cards.py -d workspace/datasets/pre
 python workspace/scripts/training/minivggnet/minivggnet_cards.py -d workspace/datasets/preprocessed_cards/cards_dataset
 ```
 
-# Installation (Software)
+# Installation (Software) (pip3 is recommeded)
 ```
 sudo apt-get install python3-pip python-pip
 
