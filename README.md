@@ -127,6 +127,7 @@ sudo apt-get install python3-pip python-pip python3-tk
 
 pip install --user numpy scipy matplotlib jupyter pandas sympy nose imutils pyqt5 Pillow scikit-learn scikit-image
 pip install --user opencv-python
+pip install --user opencv-contrib-python
 
 pip install --user tensorflow
 python -c "import tensorflow as tf; tf.enable_eager_execution();print(tf.reduce_sum(tf.random_normal([1000, 1000])))"
