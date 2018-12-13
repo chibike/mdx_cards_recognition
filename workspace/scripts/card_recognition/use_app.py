@@ -32,9 +32,10 @@ from __future__ import division
 import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 sys.path.insert(0,currentdir)
-sys.path.insert(0,"{}/vector_illustration_processing".format(currentdir))
+sys.path.insert(0,"{}/../vector_illustration_processing".format(currentdir))
+sys.path.insert(0,"{}/../".format(currentdir))
 
-SAVE_IMG_PATH = "{}/../datasets/gui_images".format(currentdir)
+SAVE_IMG_PATH = "{}/../../datasets/gui_images".format(currentdir)
 
 import pi_point
 import pi_line

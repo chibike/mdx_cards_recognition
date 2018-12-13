@@ -36,6 +36,11 @@ from imutils import paths
 import numpy as np
 import cv2
 
+import os,sys,inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+sys.path.insert(0,currentdir)
+sys.path.insert(0,"{}/../".format(currentdir))
+
 from prediction.guessing   import Guessing_Cards
 from prediction.shallownet import ShallowNet_Cards
 from prediction.lenet      import LeNet_Cards
