@@ -140,5 +140,10 @@ pip install --user pydot-ng==1.0.0
 pip install --user pydot
 ```
 
+# Installation (Software) (ROS Moveit for Baxter Control)
+```
+sudo apt-get install ros-kinetic-moveit
+```
+
 # Questions and Answers
 For more information please email the author of this project
